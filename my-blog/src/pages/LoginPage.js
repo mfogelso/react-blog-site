@@ -26,8 +26,8 @@ const LoginPage = () => {
             placeholder="Your email address"
             value={email}
             onChange={e => setEmail(e.target.value)} />
-        <input 
-            type="passowrd"
+        <input
+            type="password"
             placeholder="Your password"
             value={password}
             onChange={e => setPassword(e.target.value)} />

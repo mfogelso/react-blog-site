@@ -16,12 +16,13 @@ app.use(express.json());
 
 app.use(async (req, res, next) => {
     const { authtoken } = req.headers;
-    try {
-        if(authtoken) {
+    if(authtoken) {
+        try {
             req.user  = await admin.auth().verifyIdToken(authtoken);
         }
-        } catch (e) {
+        catch (e) {
             return res.sendStatus(400);
+        }
     }
 
     req.user = req.user || {};
@@ -42,7 +43,7 @@ app.get('/api/articles/:name/', async (req, res) => {
     } else {
         res.sendStatus(404);
     }
-})
+});
 
 //Will prevent user from making requests if not logged in
 app.use((req, res, next) => {
@@ -55,20 +56,20 @@ app.use((req, res, next) => {
 
 app.put('/api/articles/:name/upvote', async (req, res) => {
     const { name } = req.params;
+    const { uid } = req.user;
     const article = await db.collection('articles').findOne({ name });
 
     if (article) {
         const upvoteIds = article.upvoteIds || [];
         const canUpvote = uid && !upvoteIds.includes(uid);
-        const { uid } = req.user;
 
-        //if (canUpvote) {
+        if (canUpvote) {
             await db.collection('articles').updateOne({ name }, { 
                 //increment upvotes by 1 for MongoDB
                 $inc: { upvotes: 1 },
                 $push: { upvoteIds: uid },
             });
-        //} 
+        } 
         const updatedArticle = await db.collection('articles').findOne({ name });
         res.json(updatedArticle);
     

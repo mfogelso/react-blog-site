@@ -8,7 +8,8 @@ import CommentsList from '../components/CommentsList';
 import NotFoundPage from './NotFoundPage';
 
 const ArticlePage = () => {
-    const [articleInfo, setArticleInfo] = useState({ upvotes: 0, comments: [] });
+    const [articleInfo, setArticleInfo] = useState({ upvotes: 0, comments: [], canUpvote: false });
+    const { canUpvote } = articleInfo;
     const { articleId } = useParams();
     const { user, isLoading } = useUser();
 
@@ -24,10 +25,10 @@ const ArticlePage = () => {
             const newArticleInfo = response.data;
             setArticleInfo(newArticleInfo);
         };
-
-        loadArticleInfo();
-
-    }, [articleId, user]);
+        if(isLoading) {
+            loadArticleInfo();
+        }
+    }, [isLoading, user, articleId]);
 
     const article = articles.find(article => article.name === articleId);
 
@@ -48,7 +49,8 @@ const ArticlePage = () => {
             <h1>{article.title}</h1>
             <div className='upvotes-section'>
                 {user
-                    ? <button onClick={addUpvote}>Upvote</button>
+                    ? <button onClick={addUpvote}>{canUpvote ? 'Upvote' : 'Already Upvoted'}
+                    </button>
                     : <button>Log In to Upvote</button>
                 }
                 <p>This articles has {articleInfo.upvotes} upvote(s)</p>
