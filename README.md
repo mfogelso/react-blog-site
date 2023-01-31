@@ -1,6 +1,6 @@
 # react-blog-site
 
-Personal project putting React and other tools to work
+Personal project putting React, MongoDB, Axios and Firebase Authentication to work
 
 ---Notes for future projects---
 
@@ -41,3 +41,13 @@ This will handle requests from urls
 Run both `npm run dev` and `npm run start`
 Package.json file frontend -> at the top, "proxy": "http://localhost:8000/"
 This will make the front and backend think they are running on the same origin and restart front end
+
+--Firebase Authentication--
+Register Firebase online, set sign-in options
+Go to overview, click add to project
+Run `npm install firebase` on front end
+Copy and paste code from Firebase at the top of index.html
+Get private key from firebase overview -> project settings -> service accounts -> generate private key
+Add key to backend on same level as package.json
+Add credentials.json to .gitignore
+Go to back end on terminal and install `npm install firebase-admin`

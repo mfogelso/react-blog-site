@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import articles from './article-content';
+import useUser from '../hooks/useUser';
 import AddCommentForm from '../components/AddCommentForm';
 import CommentsList from '../components/CommentsList';
 import NotFoundPage from './NotFoundPage';
@@ -9,24 +10,31 @@ import NotFoundPage from './NotFoundPage';
 const ArticlePage = () => {
     const [articleInfo, setArticleInfo] = useState({ upvotes: 0, comments: [] });
     const { articleId } = useParams();
+    const { user, isLoading } = useUser();
 
     //adding empty array at the end will only run the useEffect when the component is mounted
     useEffect(() => {
         //need to create a wrapper async function inside because you can't pass async as first prop in a function
         const loadArticleInfo = async () => {
-            const response = await axios.get(`/api/articles/${articleId}`);
+            const token = user && await user.getIdToken();
+            const headers = token ? { authtoken: token } : {};
+            const response = await axios.get(`/api/articles/${articleId}`, {
+                headers,
+            });
             const newArticleInfo = response.data;
             setArticleInfo(newArticleInfo);
         };
 
         loadArticleInfo();
 
-    }, [articleId]);
+    }, [articleId, user]);
 
     const article = articles.find(article => article.name === articleId);
 
     const addUpvote = async () => {
-        const response = await axios.put(`/api/articles/${articleId}/upvote`);
+        const token = user && await user.getIdToken();
+        const headers = token ? { authtoken: token } : {};
+        const response = await axios.put(`/api/articles/${articleId}/upvote`, null, { headers });
         const updatedArticle = response.data;
         setArticleInfo(updatedArticle);
     }
@@ -39,16 +47,22 @@ const ArticlePage = () => {
         <>
             <h1>{article.title}</h1>
             <div className='upvotes-section'>
-                <button onClick={addUpvote}>Upvote</button>
+                {user
+                    ? <button onClick={addUpvote}>Upvote</button>
+                    : <button>Log In to Upvote</button>
+                }
                 <p>This articles has {articleInfo.upvotes} upvote(s)</p>
             </div>
             {article.content.map((paragraph, i) => (
                 //only use index for key when the content shown is static
                 <p key={i}>{paragraph}</p>
             ))}
-            <AddCommentForm 
-                articleName={articleId}
-                onArticleUpdated={updatedArticle => setArticleInfo(updatedArticle)} />
+            {user
+                ? <AddCommentForm 
+                    articleName={articleId}
+                    onArticleUpdated={updatedArticle => setArticleInfo(updatedArticle)} />
+                : <button>Log In to Comment</button>
+            }
             <CommentsList comments={articleInfo.comments} />
         </>
 
