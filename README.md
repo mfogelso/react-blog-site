@@ -92,3 +92,4 @@ console.cloud.google.com and search for firebase project
 Backend terminal -> Sign into gcloud with `gcloud auth login`
 Run `gcloud set config <project-id-from-google-cloud-site>`
 Run `glcoud app deploy` might need to set up billing by following a url
+Run `glcoud app browse` to open in browser
