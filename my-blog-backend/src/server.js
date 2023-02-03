@@ -3,6 +3,13 @@ import { db, connectToDb } from './db.js';
 import fs from 'fs';
 import admin from 'firebase-admin';
 
+//allows for directory paths to be used for build purposes
+import { fileURLToPath } from 'url';
+import path from 'path';
+import 'dotenv/config';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const credentials = JSON.parse(
     fs.readFileSync('./credentials.json')
 );
@@ -13,6 +20,12 @@ admin.initializeApp({
 const app = express();
 //allows express to parse json, getting the body from requests
 app.use(express.json());
+
+//Build code for running on hosting server
+app.use(express.static(path.join(__dirname, '../build')));
+app.get(/^(?!\/api).+/, (req, res) => {
+    res.sendFile(path.join(__dirname, '../build/index.html'));
+})
 
 app.use(async (req, res, next) => {
     const { authtoken } = req.headers;
@@ -31,7 +44,7 @@ app.use(async (req, res, next) => {
 });
 
 //Get article info
-app.get('/api/articles/:name/', async (req, res) => {
+app.get('/api/articles/:name', async (req, res) => {
     const { name } = req.params;
     const { uid } = req.user;
     const article = await db.collection('articles').findOne({ name });
@@ -84,7 +97,7 @@ app.post('/api/articles/:name/comments', async (req, res) => {
     const { email } = req.user;
 
     await db.collection('articles').updateOne({ name }, {
-        $push: { comments: { email, text } },
+        $push: { comments: { postedBy:email, text } },
     });
 
     const article = await db.collection('articles').findOne({ name });
@@ -96,8 +109,10 @@ app.post('/api/articles/:name/comments', async (req, res) => {
 });
 
 //Server won't start until it's connected to the database
+const PORT = process.env.PORT || 8000;
 connectToDb(() => {
-    app.listen(8000, () => {
-        console.log('Server is listening on port 8000');
+    console.log('Successfully connected to database!');
+    app.listen(PORT, () => {
+        console.log('Server is listening on port ' + PORT);
     });
 });
